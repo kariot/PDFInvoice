@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
                         appFontRegular.size = 10f
                         val doc = Document(A4, 0f, 0f, 0f, 0f)
                         val outPath =
-                            getExternalFilesDir(null).toString() + "/myInvoice.pdf" //location where the pdf will store
+                            getExternalFilesDir(null).toString() + "/my_invoice.pdf" //location where the pdf will store
                         Log.d("loc", outPath)
                         val writer = PdfWriter.getInstance(doc, FileOutputStream(outPath))
                         doc.open()
