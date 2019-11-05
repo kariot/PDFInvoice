@@ -18,6 +18,7 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -58,60 +59,66 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         initData()
-        Dexter.withActivity(this)
-            .withPermissions(
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ).withListener(object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport) {
+        generatePdf.setOnClickListener {
+            Dexter.withActivity(this)
+                .withPermissions(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ).withListener(object : MultiplePermissionsListener {
+                    override fun onPermissionsChecked(report: MultiplePermissionsReport) {
 
-                    if (report.areAllPermissionsGranted()) {
+                        if (report.areAllPermissionsGranted()) {
 
-                        appFontRegular.color = BaseColor.WHITE
-                        appFontRegular.size = 10f
-                        val doc = Document(A4, 0f, 0f, 0f, 0f)
-                        val outPath =
-                            getExternalFilesDir(null).toString() + "/my_invoice.pdf" //location where the pdf will store
-                        Log.d("loc", outPath)
-                        val writer = PdfWriter.getInstance(doc, FileOutputStream(outPath))
-                        doc.open()
-                        //Header Column Init with width nad no. of columns
-                        initInvoiceHeader(doc)
-                        doc.setMargins(0f, 0f, PADDING_EDGE, PADDING_EDGE)
-                        initBillDetails(doc)
-                        addLine(writer)
-                        initTableHeader(doc)
-                        initItemsTable(doc)
-                        initPriceDetails(doc)
-                        initFooter(doc)
-                        doc.close()
+                            appFontRegular.color = BaseColor.WHITE
+                            appFontRegular.size = 10f
+                            val doc = Document(A4, 0f, 0f, 0f, 0f)
+                            val outPath =
+                                getExternalFilesDir(null).toString() + "/my_invoice.pdf" //location where the pdf will store
+                            Log.d("loc", outPath)
+                            val writer = PdfWriter.getInstance(doc, FileOutputStream(outPath))
+                            doc.open()
+                            //Header Column Init with width nad no. of columns
+                            initInvoiceHeader(doc)
+                            doc.setMargins(0f, 0f, PADDING_EDGE, PADDING_EDGE)
+                            initBillDetails(doc)
+                            addLine(writer)
+                            initTableHeader(doc)
+                            initItemsTable(doc)
+                            initPriceDetails(doc)
+                            initFooter(doc)
+                            doc.close()
 
 
-                        val file = File(outPath)
-                        val path: Uri = FileProvider.getUriForFile(
-                            applicationContext,
-                            BuildConfig.APPLICATION_ID + ".provider",
-                            file
-                        )
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW)
-                            intent.setDataAndType(path, "application/pdf")
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            startActivity(intent)
-                        } catch (e: ActivityNotFoundException) {
-                            toast("There is no PDF Viewer ")
+                            val file = File(outPath)
+                            val path: Uri = FileProvider.getUriForFile(
+                                applicationContext,
+                                BuildConfig.APPLICATION_ID + ".provider",
+                                file
+                            )
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW)
+                                intent.setDataAndType(path, "application/pdf")
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                startActivity(intent)
+                            } catch (e: ActivityNotFoundException) {
+                                toast("There is no PDF Viewer ")
+                            }
+
+
+                        } else {
+                            toast("permissions missing :(")
                         }
-
-
                     }
-                }
 
-                override fun onPermissionRationaleShouldBeShown(
-                    permissions: List<PermissionRequest>,
-                    token: PermissionToken
-                ) {
-                }
-            }).check()
+                    override fun onPermissionRationaleShouldBeShown(
+                        permissions: List<PermissionRequest>,
+                        token: PermissionToken
+                    ) {
+                        token.continuePermissionRequest()
+                    }
+                }).check()
+        }
+
     }
 
     private fun initFooter(doc: Document) {
@@ -123,7 +130,7 @@ class MainActivity : AppCompatActivity() {
             PdfPCell(Phrase("THANK YOU FOR YOUR BUSINESS", appFontRegular))
         thankYouCell.border = Rectangle.NO_BORDER
         thankYouCell.paddingLeft = PADDING_EDGE
-        thankYouCell.paddingTop= PADDING_EDGE
+        thankYouCell.paddingTop = PADDING_EDGE
         thankYouCell.horizontalAlignment = Rectangle.ALIGN_CENTER
         footerTable.addCell(thankYouCell)
         doc.add(footerTable)
